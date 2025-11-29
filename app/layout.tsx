@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   description: "Organize and manage your Pokemon Showdown teams with Notion",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
