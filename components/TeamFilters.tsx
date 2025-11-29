@@ -1,10 +1,10 @@
 "use client";
 
-import { FORMAT_OPTIONS, GENERATION_OPTIONS, type TeamFilters } from "@/types/team";
+import { FORMAT_OPTIONS, GENERATION_OPTIONS, type TeamFilters as TeamFiltersType } from "@/types/team";
 
 interface TeamFiltersProps {
-  filters: TeamFilters;
-  onFilterChange: (filters: TeamFilters) => void;
+  filters: TeamFiltersType;
+  onFilterChange: (filters: TeamFiltersType) => void;
 }
 
 export const TeamFilters = ({ filters, onFilterChange }: TeamFiltersProps) => {
