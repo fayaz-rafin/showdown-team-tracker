@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #37352f;
+  --notion-gray: #f7f6f3;
+  --notion-border: rgba(55, 53, 47, 0.16);
+  --notion-hover: rgba(55, 53, 47, 0.08);
+  --notion-blue: #2383e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #191919;
+    --foreground: #e9e9e7;
+    --notion-gray: #2e2e2e;
+    --notion-border: rgba(255, 255, 255, 0.13);
+    --notion-hover: rgba(255, 255, 255, 0.08);
+    --notion-blue: #2383e2;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animated Chansey sprite */
+@keyframes chansey-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+}
+
+@keyframes chansey-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.chansey-sprite {
+  animation: chansey-bounce 2s ease-in-out infinite, chansey-rotate 3s ease-in-out infinite;
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+}
+
