@@ -5,6 +5,7 @@ import { TeamPasteForm } from "@/components/TeamPasteForm";
 import { TeamCard } from "@/components/TeamCard";
 import { TeamFilters } from "@/components/TeamFilters";
 import { type Team, type TeamFilters as TeamFiltersType } from "@/types/team";
+import Link from "next/link";
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -131,16 +132,25 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex gap-3">
           {!showForm ? (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-4 py-2 bg-[var(--notion-blue)] text-white rounded-[3px] hover:opacity-90 transition-opacity text-[14px] font-medium"
-            >
-              + Add New Team
-            </button>
+            <>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-4 py-2 bg-[var(--notion-blue)] text-white rounded-[3px] hover:opacity-90 transition-opacity text-[14px] font-medium"
+              >
+                + Add New Team
+              </button>
+              <Link
+                href="/suggestions"
+                className="px-4 py-2 bg-blue-700 text-white rounded-[3px] hover:bg-blue-800 transition-colors text-[14px] font-medium flex items-center gap-2"
+              >
+                <img src="/icons/ai.svg" alt="AI" className="w-4 h-4" />
+                <span>AI Team Suggestions</span>
+              </Link>
+            </>
           ) : (
-            <div className="mb-6">
+            <div className="mb-6 w-full">
               <TeamPasteForm
                 onSave={handleSaveTeam}
                 onCancel={() => {
@@ -210,4 +220,3 @@ export default function Home() {
     </main>
   );
 }
-

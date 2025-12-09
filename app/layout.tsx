@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const inter = Inter({ 
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const pokemonFont = localFont({
+  src: "../fonts/pokemon-dp-pro.otf",
+  variable: "--font-pokemon",
   display: "swap",
 });
 
@@ -21,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.variable}>{children}</body>
+      <body className={`${inter.variable} ${pokemonFont.variable}`}>{children}</body>
     </html>
   );
 }

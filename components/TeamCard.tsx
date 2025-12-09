@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { type Team } from "@/types/team";
-import { parseTeamPaste } from "@/utils/teamParser";
+import { parseTeamPaste, type ParsedPokemon } from "@/utils/teamParser";
 import { usePokemonSprite } from "@/hooks/usePokemonSprite";
+import { useSmogonStats } from "@/hooks/useSmogonStats";
+import { useItemSprite } from "@/hooks/useItemSprite";
 
 interface TeamCardProps {
   team: Team;
@@ -42,9 +44,166 @@ const PokemonSprite = ({ pokemonName }: { pokemonName: string }) => {
   );
 };
 
+const ItemSprite = ({ itemName }: { itemName: string }) => {
+  const { sprite, isLoading } = useItemSprite(itemName);
+
+  if (isLoading) {
+    return (
+      <div className="w-6 h-6 bg-[var(--notion-gray)] rounded flex items-center justify-center border border-[var(--notion-border)]">
+        <div className="w-2 h-2 border border-[var(--notion-border)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!sprite && !isLoading) {
+    // Show a placeholder icon for items without sprites
+    return (
+      <div className="w-6 h-6 bg-[var(--notion-gray)] rounded flex items-center justify-center border border-[var(--notion-border)]" title={itemName}>
+        <svg className="w-4 h-4 text-[var(--foreground)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (!sprite) {
+    return null;
+  }
+
+  return (
+    <img
+      src={sprite}
+      alt={itemName}
+      className="w-6 h-6 object-contain border border-[var(--notion-border)] rounded bg-white dark:bg-[#191919]"
+      title={itemName}
+      onError={(e) => {
+        // If sprite fails to load, show placeholder instead of hiding
+        const img = e.target as HTMLImageElement;
+        img.style.display = "none";
+        // Create placeholder div if it doesn't exist
+        if (!img.nextElementSibling || !img.nextElementSibling.classList.contains("item-placeholder")) {
+          const placeholder = document.createElement("div");
+          placeholder.className = "item-placeholder w-6 h-6 bg-[var(--notion-gray)] rounded flex items-center justify-center border border-[var(--notion-border)]";
+          placeholder.title = itemName;
+          placeholder.innerHTML = `<svg class="w-4 h-4 text-[var(--foreground)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`;
+          img.parentNode?.appendChild(placeholder);
+        }
+      }}
+    />
+  );
+};
+
+const PokemonCard = ({ pokemon }: { pokemon: ParsedPokemon }) => {
+  const [showFormats, setShowFormats] = useState(false);
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const smogonStats = useSmogonStats(shouldFetch ? pokemon.name : null);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!shouldFetch) {
+      setShouldFetch(true);
+    }
+    setShowFormats(!showFormats);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-1 p-2 rounded hover:bg-[var(--notion-hover)] transition-colors relative group cursor-pointer">
+      <div onClick={handleClick} className="flex flex-col items-center gap-1 w-full">
+        <div className="relative inline-block">
+          <PokemonSprite pokemonName={pokemon.name} />
+          {pokemon.item && (
+            <div className="absolute bottom-0 right-0">
+              <ItemSprite itemName={pokemon.item} />
+            </div>
+          )}
+        </div>
+        <span className="text-[11px] text-[var(--foreground)] opacity-70 text-center leading-tight">
+          {pokemon.nickname || pokemon.name}
+        </span>
+      </div>
+      
+      <button
+        onClick={handleClick}
+        className="text-[10px] text-[var(--notion-blue)] opacity-60 hover:opacity-100 mt-1 cursor-pointer"
+        title="Click to view Smogon format usage"
+      >
+        {smogonStats.isLoading ? (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 border border-[var(--notion-blue)] border-t-transparent rounded-full animate-spin" />
+            Loading...
+          </span>
+        ) : smogonStats.error ? (
+          <span className="opacity-50">Error</span>
+        ) : smogonStats.formats.length > 0 ? (
+          <span>{smogonStats.formats.length} format{smogonStats.formats.length !== 1 ? "s" : ""}</span>
+        ) : shouldFetch ? (
+          <span className="opacity-50">No data</span>
+        ) : (
+          <span>View stats</span>
+        )}
+      </button>
+
+      {showFormats && (
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white dark:bg-[#191919] border border-[var(--notion-border)] rounded-[3px] p-2 z-50 shadow-lg max-h-48 overflow-y-auto min-w-[200px]">
+          {!shouldFetch ? (
+            <div className="text-[11px] text-[var(--foreground)] opacity-70 text-center py-2">
+              Click "View stats" to load data
+            </div>
+          ) : smogonStats.isLoading ? (
+            <div className="text-[11px] text-[var(--foreground)] opacity-70 text-center py-2">
+              Loading format data...
+            </div>
+          ) : smogonStats.error ? (
+            <div className="text-[11px] text-[var(--foreground)] opacity-70 text-center py-2">
+              Failed to load stats: {smogonStats.error}
+            </div>
+          ) : smogonStats.formats.length > 0 ? (
+            <>
+              <div className="text-[11px] font-medium text-[var(--foreground)] mb-1.5">
+                Used in:
+              </div>
+              <div className="space-y-1">
+                {smogonStats.formats.map((format, idx) => (
+                  <div key={idx} className="text-[10px] text-[var(--foreground)] opacity-80">
+                    <span className="font-medium">{format.format}</span>
+                    {format.usage && (
+                      <span className="ml-1 opacity-60">
+                        ({format.usage.toFixed(2)}%)
+                      </span>
+                    )}
+                    {format.rank && (
+                      <span className="ml-1 opacity-50">
+                        #{format.rank}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-[11px] text-[var(--foreground)] opacity-70 text-center py-2">
+              No usage data found for {pokemon.name}
+              <div className="text-[10px] opacity-50 mt-1">
+                (Not used in tracked formats)
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const TeamCard = ({ team, onEdit, onDelete }: TeamCardProps) => {
   const parsedTeam = parseTeamPaste(team.teamPaste);
   const [copied, setCopied] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  
+  const MAX_DESCRIPTION_LENGTH = 150;
+  const shouldTruncate = team.strategy && team.strategy.length > MAX_DESCRIPTION_LENGTH;
+  const displayDescription = shouldTruncate && !isDescriptionExpanded
+    ? team.strategy.substring(0, MAX_DESCRIPTION_LENGTH) + "..."
+    : team.strategy;
 
   const handleEdit = () => {
     if (onEdit) {
@@ -152,8 +311,19 @@ export const TeamCard = ({ team, onEdit, onDelete }: TeamCardProps) => {
       {team.strategy && (
         <div className="mb-3">
           <p className="text-[14px] text-[var(--foreground)] opacity-70 leading-[1.5]">
-            {team.strategy}
+            {displayDescription}
           </p>
+          {shouldTruncate && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDescriptionExpanded(!isDescriptionExpanded);
+              }}
+              className="text-[12px] text-[var(--notion-blue)] hover:underline opacity-80 hover:opacity-100 mt-1"
+            >
+              {isDescriptionExpanded ? "Read less" : "Read more"}
+            </button>
+          )}
         </div>
       )}
 
@@ -161,25 +331,17 @@ export const TeamCard = ({ team, onEdit, onDelete }: TeamCardProps) => {
         <h4 className="text-[14px] font-medium text-[var(--foreground)] mb-2 opacity-80">
           Pokemon ({parsedTeam.pokemon.length})
         </h4>
-        {parsedTeam.pokemon.length === 0 ? (
-          <p className="text-[12px] text-[var(--foreground)] opacity-50 italic">
-            No Pokemon found in team paste
-          </p>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {parsedTeam.pokemon.map((pokemon, index) => (
-              <div
-                key={`${pokemon.name}-${index}`}
-                className="flex flex-col items-center gap-1 p-2 rounded hover:bg-[var(--notion-hover)] transition-colors"
-              >
-                <PokemonSprite pokemonName={pokemon.name} />
-                <span className="text-[11px] text-[var(--foreground)] opacity-70 text-center leading-tight">
-                  {pokemon.nickname || pokemon.name}
-                </span>
+            {parsedTeam.pokemon.length === 0 ? (
+              <p className="text-[12px] text-[var(--foreground)] opacity-50 italic">
+                No Pokemon found in team paste
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {parsedTeam.pokemon.map((pokemon, index) => (
+                  <PokemonCard key={`${pokemon.name}-${index}`} pokemon={pokemon} />
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
       </div>
 
       <details className="mt-3">
