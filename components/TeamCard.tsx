@@ -202,7 +202,7 @@ export const TeamCard = ({ team, onEdit, onDelete }: TeamCardProps) => {
   const MAX_DESCRIPTION_LENGTH = 150;
   const shouldTruncate = team.strategy && team.strategy.length > MAX_DESCRIPTION_LENGTH;
   const displayDescription = shouldTruncate && !isDescriptionExpanded
-    ? team.strategy.substring(0, MAX_DESCRIPTION_LENGTH) + "..."
+    ? team.strategy?.substring(0, MAX_DESCRIPTION_LENGTH) + "..."
     : team.strategy;
 
   const handleEdit = () => {

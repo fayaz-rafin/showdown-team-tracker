@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 interface SmogonFormatUsage {
   format: string;
   usage: number;
-  rank?: number;
+  rank: number;
 }
 
 interface SmogonUsageData {
@@ -201,7 +201,7 @@ async function fetchSmogonStats(pokemonName: string): Promise<SmogonUsageData> {
 
     const result: SmogonUsageData = {
       pokemon: pokemonName,
-      formats: validFormats.sort((a, b) => (b.usage || 0) - (a.usage || 0)),
+      formats: validFormats.sort((a, b) => b.usage - a.usage),
       latestMonth,
     };
 
